@@ -1,0 +1,39 @@
+generator client { provider = "prisma-client-js" }
+datasource db { provider = "sqlserver" url = env("DATABASE_URL") }
+enum Role { empleado administrador }
+enum Priority { baja media alta }
+enum Status { pendiente aprobado rechazado }
+model User {
+ id Int @id @default(autoincrement())
+ username String @unique
+ password String
+ role Role
+ createdAt DateTime @default(now())
+ requisitions Requisition[]
+}
+model Requisition {
+ id Int @id @default(autoincrement())
+ code String @unique
+ title String
+ estimatedAmount Decimal @db.Decimal(12,2)
+ priority Priority
+ status Status @default(pendiente)
+ createdAt DateTime @default(now())
+ createdById Int
+ createdBy User @relation(fields:[createdById], references:[id])
+ adminComment String?
+ attachments Attachment[]
+ @@index([status])
+ @@index([priority])
+ @@index([createdById])
+}
+model Attachment {
+ id Int @id @default(autoincrement())
+ originalName String
+ storedName String @unique
+ mimeType String
+ size Int
+ createdAt DateTime @default(now())
+ requisitionId Int
+ requisition Requisition @relation(fields:[requisitionId], references:[id], onDelete:Cascade)
+}
